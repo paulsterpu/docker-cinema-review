@@ -1,0 +1,27 @@
+FROM ubuntu
+
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+RUN apt-get -y install curl
+RUN apt-get -y install vim
+RUN apt-get -y install php
+RUN apt-get -y install php7.2-mysql
+RUN php -v
+RUN curl -sS https://getcomposer.org/installer | php
+RUN mv composer.phar /usr/local/bin/composer
+RUN chmod +x /usr/local/bin/composer
+
+COPY start_server.sh /usr/src/
+COPY cinema-review /usr/src/cinema-review/
+RUN apt-get -y install php-mbstring
+RUN apt-get -y install php-fileinfo
+RUN apt-get -y install php-tokenizer
+RUN apt-get -y install php-dom
+RUN apt-get -y install php-xmlwriter
+RUN apt-get -y install php-xml
+RUN cd /usr/src/cinema-review/ && composer install
+RUN cd /usr/src/cinema-review/ && php artisan key:generate
+
+CMD ["sh", "/usr/src/start_server.sh"]
+
+EXPOSE 8000

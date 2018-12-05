@@ -1,0 +1,73 @@
+version: '3.2'
+
+services:
+    mysql:
+        image: mysql:5.6
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+        hostname: mysql
+        networks:
+            - default
+        volumes:
+            - ./mysql:/var/lib/mysql
+
+    redis:
+         image: redis
+         hostname: redis
+         networks:
+            - default
+         volumes:
+            - ./redis:/data
+
+    laravel:
+        image: cinema-review:latest
+        environment:
+            REDIS_PORT: 6379
+        ports:
+            - "8001:8000"
+        depends_on:
+            - redis
+            - mysql
+        networks:
+            - default
+        volumes:
+            - ./cinema-review:/usr/src/cinema-review
+
+    node:
+        image: cinema-review-admin:latest
+        ports:
+            - "5000:5000"
+        depends_on:
+            - mysql
+        networks:
+            - default
+        volumes:
+            - ./cinema-review-admin:/usr/src/cinema-review-admin
+
+    react:
+        image: admin-frontend:latest
+        ports:
+            - "8010:8010"
+        depends_on:
+            - node
+        networks:
+            - default
+        volumes:
+            - ./admin-frontend:/usr/src/admin-frontend
+
+    phpmyadmin:
+         image: phpmyadmin/phpmyadmin
+         environment:
+             PMA_PORT: 3306
+             PMA_HOST: mysql
+             PMA_USER: root
+             PMA_PASSWORD: root
+         ports:
+             - "8080:80"
+         depends_on:
+            - mysql
+
+networks:
+  default:
+    driver: overlay
+    attachable: true
